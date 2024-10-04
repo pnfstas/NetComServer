@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    },
+    "UpdateRegistration": {
+      "commandName": "Project",
+      "commandLineArgs": "/update /KeepConsole",
+      "workingDirectory": "$(OutputPath)"
+    },
+    "StartServer": {
+      "commandName": "Project",
+      "commandLineArgs": "/start /KeepConsole",
+      "workingDirectory": "$(OutputPath)"
+    },
+    "UnregisterServer": {
+      "commandName": "Project",
+      "commandLineArgs": "/unregister /KeepConsole",
+      "workingDirectory": "$(OutputPath)"
+    }
+  }
+}

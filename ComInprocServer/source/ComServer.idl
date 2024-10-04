@@ -1,0 +1,42 @@
+import "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\oaidl.idl";
+import "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\ocidl.idl";
+
+[
+    object,
+    oleautomation,
+    uuid(E62A1CB0-86A7-40AE-AFE4-75562C32A498)
+]
+interface IComServer : IDispatch
+{
+    //HRESULT LoadAssembly([in] const char* assemblyName);
+    HRESULT LoadAssembly([in] const wchar_t* assemblyName);
+    HRESULT GetCurrentAssembly([out, retval] IDispatch** ret);
+    //HRESULT CreateNetInstance([in] const char* typeName, [out, retval] IDispatch** ret);
+    HRESULT CreateNetInstance([in] const wchar_t* typeName, [out, retval] IDispatch** ret);
+};
+
+[
+    uuid(467E7566-BEF4-4138-A619-035D3171AFCF),
+    //lcid(0x419),
+    version(1.0)
+]
+library NetComServer
+{
+    importlib("C:\\Program Files (x86)\\Windows Kits\\10\Lib\\10.0.22621.0\\um\\x64\\stdole2.tlb");
+
+    [uuid(C6819A04-046E-4EA2-9750-949760CB26F9)]
+    coclass ComServer
+    {
+        [default] interface IComServer;
+    }
+    [uuid(2A8CABCA-0EBD-40F3-96A4-04054B3ED79D)]
+    coclass ComServerClassFactory
+    {
+        [default] interface IClassFactory;
+    }
+    [uuid(9812DE38-ACE5-426F-9C54-652322461AFC)]
+    coclass ComServerConstants
+    {
+        [default] interface IDispatch;
+    }
+}

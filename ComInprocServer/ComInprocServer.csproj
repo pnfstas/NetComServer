@@ -1,0 +1,82 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<OutputType>Library</OutputType>
+		<EnableComHosting>True</EnableComHosting>
+		<DeployOnBuild>False</DeployOnBuild>
+		<PublishProfile>FolderProfile</PublishProfile>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>annotations</Nullable>
+		<SignAssembly>True</SignAssembly>
+		<DelaySign>True</DelaySign>
+		<AssemblyOriginatorKeyFile>publickey.snk</AssemblyOriginatorKeyFile>
+		<RegSvrExitCode>-1</RegSvrExitCode>
+		<MidlExitCode>-1</MidlExitCode>
+		<OutputDirectory Condition="'$(Platform)'=='AnyCPU'">$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)</OutputDirectory>
+		<OutputDirectory Condition="'$(Platform)'!='AnyCPU'">$(MSBuildProjectDirectory)\bin\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)</OutputDirectory>
+		<ComHostPath>$(OutputDirectory)\ComInprocServer.comhost.dll</ComHostPath>
+		<ClDirectory>C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\bin\Hostx64\x64</ClDirectory>
+		<MidlIncludeDirectory1>C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/um</MidlIncludeDirectory1>
+		<MidlIncludeDirectory2>C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/shared</MidlIncludeDirectory2>
+		<MidlIncludeDirectory3>C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/ucrt</MidlIncludeDirectory3>
+		<MidlProjectDirectory>$(MSBuildProjectDirectory.Replace("\", "/"))</MidlProjectDirectory>
+		<MidlSourcePath>$(MidlProjectDirectory)/source/ComServer.idl</MidlSourcePath>
+		<MidlTypeLibPath>$(MidlProjectDirectory)/lib/NetComServer.tlb</MidlTypeLibPath>
+		<MidlHeaderPath>$(MidlProjectDirectory)/include/NetComServer.h</MidlHeaderPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<Optimize>False</Optimize>
+		<WarningLevel>1</WarningLevel>
+		<IsPublishable>True</IsPublishable>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<WarningLevel>1</WarningLevel>
+		<IsPublishable>True</IsPublishable>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<IsPublishable>True</IsPublishable>
+		<WarningLevel>1</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+		<IsPublishable>True</IsPublishable>
+		<WarningLevel>1</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<IsPublishable>True</IsPublishable>
+		<WarningLevel>1</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+		<IsPublishable>True</IsPublishable>
+		<WarningLevel>1</WarningLevel>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Update="include\NetComServer.h">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="lib\NetComServer.tlb">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<Compile Remove="misc\**" />
+		<EmbeddedResource Remove="misc\**" />
+		<None Remove="misc\**" />
+		<None Remove="keypair.snk" />
+		<None Remove="msbuild.binlog" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\ComServerHelpers\ComServerHelpers.csproj" />
+	</ItemGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Condition="'$(DeployOnBuild)'!='true'And '$(RegSvrExitCode)'!='0'" Command="regsvr32 &quot;$(ComHostPath)&quot;" UseUtf8Encoding="Detect" ContinueOnError="false" IgnoreExitCode="false" WorkingDirectory="$(OutputDirectory)">
+			<Output TaskParameter="ExitCode" PropertyName="RegSvrExitCode" />
+		</Exec>
+		<Exec Condition="'$(DeployOnBuild)'!='true'And '$(MidlExitCode)'=='-1' And '$(RegSvrExitCode)'=='0'" Command="midl  &quot;$(MidlSourcePath)&quot; /win64 /I &quot;$(MidlIncludeDirectory1)&quot; /I &quot;$(MidlIncludeDirectory2)&quot; /I &quot;$(MidlIncludeDirectory3)&quot; /tlb  &quot;$(MidlTypeLibPath)&quot; /header &quot;$(MidlHeaderPath)&quot;" UseUtf8Encoding="Detect" ContinueOnError="false" IgnoreExitCode="false" WorkingDirectory="$(ClDirectory)">
+			<Output TaskParameter="ExitCode" PropertyName="MidlExitCode" />
+		</Exec>
+		<MSBuild Condition="'$(DeployOnBuild)'!='true' And '$(MidlExitCode)'=='0'" Projects="$(MSBuildProjectFullPath)" Properties="Configuration=Debug;DeployOnBuild=true;PublishProfile=FolderProfile" Targets="Publish">
+			<Output TaskParameter="TargetOutputs" PropertyName="MSBuildExitCode" />
+		</MSBuild>
+	</Target>
+</Project>
