@@ -42,11 +42,6 @@ namespace NetComServer
 		abstract object GetCurrentAssembly();
 		[return: MarshalAs(UnmanagedType.IDispatch)]
 		abstract object CreateNetInstance([In, MarshalAs(UnmanagedType.LPWStr)] string typeName);
-		/*
-		int LoadAssembly(string assemblyName);
-		object GetCurrentAssembly();
-		object CreateInstance(string typeName);
-		*/
 	}
 	[ComVisible(true)]
 	[Guid(CLSID_ComServer)]
@@ -197,12 +192,6 @@ namespace NetComServer
 					regKeyPair.SetValue(null, $"{ProgIdComServer}.{VersionMajor}");
 					regKeyPair.SetValue(null, ProgIdComServer);
 					WriteLine($"{regKeyPair} setting default value = {regKeyPair.GetValue(null)}");
-					/*
-					regKeyPair = regKeyPairClsid.CreateSubKey("VersionIndependentProgID");
-					WriteLine(regKeyPair + (regKeyPair.KeyCount > 1 ? "were" : "was") + " created");
-					regKeyPair.SetValue(null, ProgIdComServer);
-					WriteLine($"{regKeyPair} setting default value = {regKeyPair.GetValue(null)}");
-					*/
 					regKeyPair = regKeyPairClsid.CreateSubKey("Version");
 					WriteLine(regKeyPair + (regKeyPair.KeyCount > 1 ? "were" : "was") + " created");
 					regKeyPair.SetValue(null, $"{VersionMajor}.{VersionMinor}");
@@ -225,20 +214,24 @@ namespace NetComServer
 					WriteLine(regKeyPairAppId + (regKeyPairAppId.KeyCount > 1 ? "were" : "was") + " created");
 					regKeyPairAppId.SetValue(null, ApplicationName);
 					WriteLine($"{regKeyPairAppId} setting default value = {regKeyPairAppId.GetValue(null)}");
-					/*
-					regKeyPairAppId.SetValue("DllSurrogate", string.Empty);
-					WriteLine($"{regKeyPairAppId} setting value DllSurrogate = {regKeyPairAppId.GetValue("DllSurrogate")}");
-					regKeyPairAppId.SetValue("PreferredServerBitness", 3, RegistryValueKind.DWord);
-					WriteLine($"{regKeyPairAppId} setting value PreferredServerBitness = {regKeyPairAppId.GetValue("PreferredServerBitness")}");
-					*/
-					COM_RIGHTS accessRights = COM_RIGHTS.EXECUTE | COM_RIGHTS.EXECUTE_LOCAL;
-					COM_RIGHTS launchRights = COM_RIGHTS.EXECUTE | COM_RIGHTS.EXECUTE_LOCAL | COM_RIGHTS.ACTIVATE_LOCAL;
+					//regKeyPairAppId.SetValue("PreferredServerBitness", 3, RegistryValueKind.DWord);
+					COM_RIGHTS localAccessRights = COM_RIGHTS.EXECUTE | COM_RIGHTS.EXECUTE_LOCAL;
+					COM_RIGHTS localLaunchRights = COM_RIGHTS.EXECUTE | COM_RIGHTS.EXECUTE_LOCAL | COM_RIGHTS.ACTIVATE_LOCAL;
+					COM_RIGHTS fullAccessRights = COM_RIGHTS.EXECUTE | COM_RIGHTS.EXECUTE_LOCAL | COM_RIGHTS.EXECUTE_REMOTE;
+					COM_RIGHTS fullLaunchRights = COM_RIGHTS.EXECUTE | COM_RIGHTS.EXECUTE_LOCAL | COM_RIGHTS.EXECUTE_REMOTE
+						| COM_RIGHTS.ACTIVATE_LOCAL | COM_RIGHTS.ACTIVATE_REMOTE;
 					string accountName = "BUILTIN\\Пользователи";
-					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, accessRights, launchRights, accountName, accountName, WriteLine);
+					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, localAccessRights, localLaunchRights, accountName, accountName, WriteLine);
 					accountName = "NT AUTHORITY\\LocalService";
-					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, accessRights, launchRights, accountName, accountName, WriteLine);
-					accountName = "ИНТЕРАКТИВНЫЕ";
-					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, accessRights, launchRights, accountName, accountName, WriteLine);
+					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, localAccessRights, localLaunchRights, accountName, accountName, WriteLine);
+					accountName = "NT AUTHORITY\\ИНТЕРАКТИВНЫЕ";
+					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, localAccessRights, localLaunchRights, accountName, accountName, WriteLine);
+					accountName = "NT AUTHORITY\\СИСТЕМА";
+					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, fullAccessRights, fullLaunchRights, accountName, accountName, WriteLine);
+					accountName = "SELF";
+					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, fullAccessRights, fullLaunchRights, accountName, accountName, WriteLine);
+					accountName = "BUILTIN\\Администраторы";
+					Helpers.SecurityHelper.SetComServerPermissions(regKeyPairAppId, fullAccessRights, fullLaunchRights, accountName, accountName, WriteLine);
 					regKeyPairAppId.SetValue("RunAs", "Interactive User");
 					WriteLine($"{regKeyPairAppId} setting value RunAs = {regKeyPairAppId.GetValue("RunAs")}");
 					isRegistered = regKeyPairClsid != null && regKeyPairAppId != null && regKeyPairProgId != null;
