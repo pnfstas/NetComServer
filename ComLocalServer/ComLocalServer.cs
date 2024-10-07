@@ -42,7 +42,7 @@ namespace NetComServer
 				WriteLine("NetComServer is running...");
 				WriteLine($"KeepConsole = {KeepConsole}");
 				exitCode = localServer.RegisterClassObject() ? 0 : -1;
-				WriteLine("RegisterClassObject is " + (exitCode == 0 ? "succseed." : "failed."));
+				WriteLine("RegisterClassObject is " + (exitCode == 0 ? "successeed." : "failed."));
 				if(exitCode == 0)
 				{
 					localServer.IsServerRunning = true;
@@ -56,7 +56,7 @@ namespace NetComServer
 					}
 					WriteLine("Message loop is end.");
 					exitCode = localServer.UnRegisterClassObject() ? 0 : -1;
-					WriteLine("UnRegisterClassObject is " + (exitCode == 0 ? "succseed." : "failed."));
+					WriteLine("UnRegisterClassObject is " + (exitCode == 0 ? "successeed." : "failed."));
 					WriteLine("Wait for server stop...");
 					localServer.IsServerRunning = false;
 					localServer.ServerStopEvent.WaitOne();
@@ -180,30 +180,6 @@ namespace NetComServer
 			WriteLine = HasConsole ? Console.WriteLine : new WriteLineDelegate((string? message) => Debug.WriteLine(message));
 			ReadLine = HasConsole ? Console.ReadLine : null;
 		}
-		[UnmanagedCallersOnly(CallConvs = [ typeof(CallConvStdcall) ])]
-		public static unsafe int DllGetClassObject(void* rclsid, void* riid, nint* ppv)
-		{
-			*ppv = nint.Zero;
-			nint ptrClsid = new nint(rclsid);
-			nint ptrIId = new nint(riid);
-			Guid clsid = Marshal.PtrToStructure<Guid>(ptrClsid);
-			Guid iid = Marshal.PtrToStructure<Guid>(ptrIId);
-			string strMessage = $"DllGetClassObject: rclsid = {clsid}, riid = {iid}";
-			int hr = CLASS_E_CLASSNOTAVAILABLE;
-			if(CLSID_ComServer.Equals(clsid.ToString().ToUpper().Trim()) && IID_IClassFactory.Equals(iid.ToString().ToUpper().Trim()))
-			{
-				ComServerClassFactory factory = new ComServerClassFactory();
-				nint punk = nint.Zero;
-				hr = factory.QueryInterface(ref iid, out punk);
-				if(hr != S_OK && punk != nint.Zero)
-				{
-					*ppv = punk;
-				}
-			}
-			strMessage += $"\nDllGetClassObject: hr = {hr:X}";
-			MessageBox(nint.Zero, strMessage, "", MessageBoxFlag.MB_OK | MessageBoxFlag.MB_ICONINFORMATION);
-			return hr;
-		}
 		public static bool RegisterServer()
 		{
 			bool isRegistered = false;
@@ -268,6 +244,8 @@ namespace NetComServer
 		}
 		public bool RegisterClassObject()
 		{
+			HasConsole = HasConsole || ShowConsole();
+			WriteLine = HasConsole ? new WriteLineDelegate(Console.WriteLine) : new WriteLineDelegate((string? message) => Debug.WriteLine(message));
 			Guid clsidComServer = new Guid(CLSID_ComServer);
 			ComServerClassFactory factory = new ComServerClassFactory();
 			bool isRegistered = CoRegisterClassObject(ref clsidComServer, factory, CLSCTX.LOCAL_SERVER, REGCLS.MULTIPLEUSE | REGCLS.SUSPENDED, out ClassId) == S_OK;
@@ -275,6 +253,7 @@ namespace NetComServer
 			{
 				isRegistered = CoResumeClassObjects() == S_OK;
 			}
+			WriteLine($"RegisterClassObject {clsidComServer:B} is {(isRegistered ? "successeed." : "failed")}");
 			return isRegistered;
 		}
 		public bool UnRegisterClassObject()

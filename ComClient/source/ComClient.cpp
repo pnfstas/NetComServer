@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <stdexcept>
 #include <typeinfo>
-#include "../../../../../../inetpub/wwwroot/netcomserver/ComInprocServer/include/NetComServer.h"
+#include "../../ComInprocServer/include/NetComServer.h"
 
 using namespace std;
 
